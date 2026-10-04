@@ -1,0 +1,23 @@
+{
+  "exp_id": "B03",
+  "backbone": "convnext_tiny",
+  "tag": "in12k_ft_in1k",
+  "seed": 0,
+  "epochs": 12,
+  "batch_size": 32,
+  "img_size": 224,
+  "best_epoch": 10,
+  "macro_f1_val": 0.9687279192957381,
+  "top1_val": 0.9762924878606113,
+  "params_M": 27.827049,
+  "gmac": 4.469676288,
+  "train_seconds_per_epoch": 69.62937947183336,
+  "gmac_tool": "fvcore; 1 multiply-add = 1",
+  "latency_p50_ms": 6.330523000087851,
+  "latency_p95_ms": 10.680634549953538,
+  "latency_p99_ms": 11.115389650149153,
+  "latency_dtype": "FP32",
+  "latency_batch": 1,
+  "latency_preprocessing": false,
+  "gpu": "Tesla T4"
+}

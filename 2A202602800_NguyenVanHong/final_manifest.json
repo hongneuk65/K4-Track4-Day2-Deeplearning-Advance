@@ -1,0 +1,18 @@
+{
+  "backbone": "convnext_tiny",
+  "final_recipe": {
+    "mix": "cutmix",
+    "mix_alpha": 1.0,
+    "loss": "ls",
+    "label_smoothing": 0.1
+  },
+  "final_method": "I03",
+  "baseline_method": "I00",
+  "seeds": [
+    0,
+    1,
+    2
+  ],
+  "epochs": 12,
+  "batch_size": 32
+}

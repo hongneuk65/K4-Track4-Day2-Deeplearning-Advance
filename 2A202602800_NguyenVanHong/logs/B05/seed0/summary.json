@@ -1,0 +1,23 @@
+{
+  "exp_id": "B05",
+  "backbone": "mobilenetv3_large_100",
+  "tag": "ra_in1k",
+  "seed": 0,
+  "epochs": 12,
+  "batch_size": 32,
+  "img_size": 224,
+  "best_epoch": 12,
+  "macro_f1_val": 0.7662474556592571,
+  "top1_val": 0.8240502713510426,
+  "params_M": 4.213561,
+  "gmac": 0.224167936,
+  "train_seconds_per_epoch": 48.87169945316676,
+  "gmac_tool": "fvcore; 1 multiply-add = 1",
+  "latency_p50_ms": 6.6569909999998345,
+  "latency_p95_ms": 8.52447454999492,
+  "latency_p99_ms": 10.853273390112006,
+  "latency_dtype": "FP32",
+  "latency_batch": 1,
+  "latency_preprocessing": false,
+  "gpu": "Tesla T4"
+}

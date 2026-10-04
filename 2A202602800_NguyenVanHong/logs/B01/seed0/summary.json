@@ -1,0 +1,23 @@
+{
+  "exp_id": "B01",
+  "backbone": "resnet50",
+  "tag": "a1_in1k",
+  "seed": 0,
+  "epochs": 12,
+  "batch_size": 32,
+  "img_size": 224,
+  "best_epoch": 9,
+  "macro_f1_val": 0.8268395817898883,
+  "top1_val": 0.8726078263353327,
+  "params_M": 23.526473,
+  "gmac": 4.109483008,
+  "train_seconds_per_epoch": 59.71426956891668,
+  "gmac_tool": "fvcore; 1 multiply-add = 1",
+  "latency_p50_ms": 6.578978500328958,
+  "latency_p95_ms": 10.623503149599856,
+  "latency_p99_ms": 11.51182273015365,
+  "latency_dtype": "FP32",
+  "latency_batch": 1,
+  "latency_preprocessing": false,
+  "gpu": "Tesla T4"
+}

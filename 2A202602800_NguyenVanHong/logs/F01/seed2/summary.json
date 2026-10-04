@@ -1,0 +1,16 @@
+{
+  "exp_id": "F01",
+  "backbone": "convnext_tiny",
+  "tag": "in12k_ft_in1k",
+  "seed": 2,
+  "epochs": 12,
+  "batch_size": 32,
+  "img_size": 224,
+  "best_epoch": 12,
+  "macro_f1_val": 0.9744358124953896,
+  "top1_val": 0.980576978006284,
+  "params_M": 27.827049,
+  "gmac": 4.469676288,
+  "train_seconds_per_epoch": 71.25714298791657,
+  "gmac_tool": "fvcore; 1 multiply-add = 1"
+}
