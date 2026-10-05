@@ -68,6 +68,16 @@ GMAC dùng fvcore, một multiply-add tính một đơn vị;
 toán tử chưa hỗ trợ được ghi trong output.
 Một seed chưa đủ để kết luận chắc chắn về thứ hạng.
 
+![Backbone theo độ trễ và số tham số](curves/backbone_tradeoff.png)
+
+MobileNet dùng ít tham số và GMAC nhất nhưng macro-F1 thấp trong recipe này.
+ConvNeXt đạt F1 cao nhất với p95 sơ bộ 10,68 ms; DeiT dùng ít tham số hơn
+và p95 9,03 ms nhưng F1 thấp hơn 2,16 điểm phần trăm. Đây là đánh đổi quan
+sát ở seed 0, chưa chứng minh thứ hạng trên nhiều seed. Summary tổng hợp
+top 10 cấu hình B/T/I theo val; B03/T00 và T08/I00 được gộp để tránh đếm
+trùng cấu hình. Các hàng I dùng độ trễ đo trực tiếp của phương pháp;
+hàng recipe T chỉ có độ trễ tham khảo từ backbone, không phải đo lại.
+
 Theo history.csv, B03/T00 seed0 đạt macro-F1 val cao nhất ở epoch 10
 (0,968728), sau đó giảm nhẹ còn 0,967065 ở epoch 12 dù train loss giảm
 đến 0,035559. Đây là dấu hiệu chất lượng val đã bão hòa, chưa đủ để
@@ -238,8 +248,10 @@ predictions/ chứa dự đoán để tính lại bằng eval.py.
 
 Các helper EMA, CLI, multiscale, BN fusion và benchmark tổng quát đã được
 bổ sung sau thí nghiệm. Chúng không thay đổi recipe hoặc các dự đoán đã nộp.
-EMA chưa tích hợp vào run() và không được dùng trong thí nghiệm; không tuyên
-bố đã khảo sát EMA. BN fusion chỉ áp dụng cho các cặp Sequential hoặc timm
+EMA đã tích hợp tùy chọn vào run() (ema_decay mặc định None), cập nhật sau
+bước tối ưu thành công, đánh giá/chọn checkpoint bằng trọng số EMA và lưu
+trọng số EMA khi resume. Các thí nghiệm đã nộp không dùng EMA; việc bổ sung
+code không phải bằng chứng đã khảo sát EMA. BN fusion chỉ áp dụng cho các cặp Sequential hoặc timm
 ResNet xác định; ConvNeXt dùng LayerNorm nên không áp dụng kỹ thuật này.
 Chạy code/test_helpers.py để kiểm tra đầu ra fusion, CutMix, loss, EMA,
 normalization xác suất, CLI và nhóm optimizer bằng dữ liệu tổng hợp.

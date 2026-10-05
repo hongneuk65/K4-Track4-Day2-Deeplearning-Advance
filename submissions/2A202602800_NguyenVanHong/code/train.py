@@ -21,7 +21,7 @@ from eval import compute_metrics, save_predictions
 
 
 class EMA:
-    """Optional helper; not used in the submitted experiments.
+    """Optional EMA weights; enabled in run() by cfg.ema_decay.
 
     Average parameters, copy buffers (including BN statistics) from the source.
     Evaluate self.model rather than the live training model.
@@ -72,6 +72,7 @@ class Config:
     lr_head: float = 1e-3
     weight_decay: float = 0.05
     warmup_epochs: float = 1.0
+    ema_decay: float | None = None
 
     amp: bool = True
     num_workers: int = 2
@@ -156,6 +157,7 @@ def build_scheduler(optimizer, cfg, steps_per_epoch):
 def train_one_epoch(
     model, loader, criterion, optimizer,
     scheduler, scaler, cfg, device,
+    ema=None,
 ):
     model.train()
 
@@ -208,6 +210,8 @@ def train_one_epoch(
         # Không tiến scheduler nếu AMP bỏ qua optimizer step.
         if scaler.get_scale() >= old_scale:
             scheduler.step()
+            if ema is not None:
+                ema.update(model)
 
         total_loss += loss.item() * len(labels)
         total_samples += len(labels)
@@ -325,6 +329,7 @@ def run(cfg):
     if config_path.exists():
         previous = json.loads(config_path.read_text())
 
+        previous.setdefault("ema_decay", None)
         if previous != config_dict:
             raise ValueError(
                 "exp_id/seed này đã có cấu hình khác. "
@@ -411,6 +416,7 @@ def run(cfg):
         "cuda",
         enabled=cfg.amp and device.type == "cuda",
     )
+    ema = EMA(model, cfg.ema_decay) if cfg.ema_decay is not None else None
 
     history = []
     best_f1 = -1.0
@@ -430,6 +436,10 @@ def run(cfg):
         optimizer.load_state_dict(state["optimizer"])
         scheduler.load_state_dict(state["scheduler"])
         scaler.load_state_dict(state["scaler"])
+        if ema is not None:
+            if "ema" not in state or state["ema"] is None:
+                raise ValueError("EMA resume requires EMA weights in last.pt")
+            ema.model.load_state_dict(state["ema"])
 
         history = state["history"]
         best_f1 = state["best_f1"]
@@ -479,6 +489,7 @@ def run(cfg):
         row = train_one_epoch(
             model, train_loader, criterion,
             optimizer, scheduler, scaler, cfg, device,
+            ema=ema,
         )
 
         if device.type == "cuda":
@@ -486,8 +497,9 @@ def run(cfg):
 
         train_seconds = time.perf_counter() - start_time
 
+        validation_model = ema.model if ema is not None else model
         names, y_true, logits, val_loss = evaluate(
-            model, val_loader, val_criterion, device
+            validation_model, val_loader, val_criterion, device
         )
 
         probabilities = softmax_numpy(logits)
@@ -514,7 +526,7 @@ def run(cfg):
 
             atomic_save(
                 {
-                    "model": model.state_dict(),
+                    "model": validation_model.state_dict(),
                     "epoch": best_epoch,
                     "macro_f1": best_f1,
                 },
@@ -527,6 +539,7 @@ def run(cfg):
                 "optimizer": optimizer.state_dict(),
                 "scheduler": scheduler.state_dict(),
                 "scaler": scaler.state_dict(),
+                "ema": ema.model.state_dict() if ema is not None else None,
                 "epoch": epoch + 1,
                 "history": history,
                 "best_f1": best_f1,
@@ -628,7 +641,7 @@ def run(cfg):
 def parse_overrides(pairs):
     """Parse CLI overrides without silently accepting invalid fields/types."""
     defaults = asdict(Config())
-    optional_numeric = {"class_weight_beta"}
+    optional_numeric = {"class_weight_beta", "ema_decay"}
     optional_strings = {"sampler", "mix"}
     result = {}
     for pair in pairs:

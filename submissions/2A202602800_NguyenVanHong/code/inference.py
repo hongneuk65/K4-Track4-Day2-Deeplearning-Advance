@@ -132,7 +132,13 @@ def fit_temperature(val_logits, val_labels):
     return float(np.exp(result.x))
 
 
-def apply_temperature(logits, temperature):
+def apply_temperature(logits, T=None, *, temperature=None):
+    """Keep starter's T keyword and accept the previous temperature alias."""
+    if T is not None and temperature is not None:
+        raise ValueError("Specify only T or temperature")
+    temperature = T if T is not None else temperature
+    if temperature is None:
+        raise ValueError("Temperature is required")
     if temperature <= 0:
         raise ValueError("Temperature phải > 0")
 
