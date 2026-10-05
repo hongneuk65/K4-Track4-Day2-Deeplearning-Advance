@@ -6,16 +6,11 @@ Notebook: https://colab.research.google.com/drive/1hHWr3tceI_zQFmJ2MLObZo4HFrgQv
 
 ## 1. Tóm tắt
 
-So sánh 5 backbone, ablation ba trục khởi tạo, augmentation và loss,
-rồi thử 4 phương pháp suy luận ngoài mốc 1-view.
-Cấu hình cuối dùng ConvNeXt-Tiny, CutMix, label smoothing 0.1
-và temperature scaling.
-
-Qua 3 seed, macro-F1 test đạt 0.974662 ± 0.000251,
-top-1 đạt 0.978804 ± 0.001080.
-Macro-F1 tăng 0.4516 điểm phần trăm so với baseline.
-eval.py đề xuất 19/20 cho phần I,
-không phải điểm tổng bài lab.
+So sánh 5 backbone, ba trục khởi tạo/augmentation/loss và 4 cách suy luận ngoài mốc.
+Cấu hình cuối: ConvNeXt-Tiny + CutMix + label smoothing 0.1 + temperature scaling.
+Qua 3 seed, macro-F1 test đạt 0.974662 ± 0.000251, top-1 đạt 0.978804 ± 0.001080.
+Macro-F1 tăng 0.4516 điểm phần trăm so với baseline, vượt std lớn nhất của hai nhóm.
+eval.py đề xuất 19/20 phần I; đây không phải điểm tổng bài lab.
 
 ## 2. Dữ liệu và thiết lập
 
@@ -49,6 +44,10 @@ Mean/std lấy từ pretrained_cfg.
 Sàng lọc dùng seed 0; chung kết dùng seed 0,1,2.
 Checkpoint theo macro-F1 val cao nhất, hòa giữ epoch sớm hơn.
 Phiên bản và GPU xem logs/*/seed*/environment.json.
+Các lượt sàng backbone ghi PyTorch 2.11.0+cu130 và timm 1.0.29 trên Tesla T4.
+Batch 32 là lựa chọn thực nghiệm, khác batch 64 gợi ý trong GUIDE;
+được giữ như nhau giữa các backbone. Các lượt chung kết đối chiếu môi trường
+riêng trong log, không mặc định mọi phiên Colab có cùng phiên bản.
 
 ## 3. So sánh backbone
 
@@ -109,6 +108,9 @@ cao nhất trong nhóm recipe đã thử.
 Hiệu quả kết hợp không bằng cộng cơ học hiệu quả từng yếu tố.
 
 Các ablation dùng một seed để sàng lọc.
+Không có std riêng cho mỗi ablation T03–T07, nên các mức tăng nhỏ chỉ là
+quan sát để sàng lọc, chưa chứng minh cải thiện ổn định. So sánh với nhiễu
+được thực hiện cho F01 và T00 qua ba seed ở mục 6.
 Train loss có thể dùng objective khác, còn val loss luôn là CE.
 
 ![Ablation](curves/training_ablation.png)
@@ -248,10 +250,12 @@ predictions/ chứa dự đoán để tính lại bằng eval.py.
 
 Các helper EMA, CLI, multiscale, BN fusion và benchmark tổng quát đã được
 bổ sung sau thí nghiệm. Chúng không thay đổi recipe hoặc các dự đoán đã nộp.
-EMA đã tích hợp tùy chọn vào run() (ema_decay mặc định None), cập nhật sau
-bước tối ưu thành công, đánh giá/chọn checkpoint bằng trọng số EMA và lưu
-trọng số EMA khi resume. Các thí nghiệm đã nộp không dùng EMA; việc bổ sung
-code không phải bằng chứng đã khảo sát EMA. BN fusion chỉ áp dụng cho các cặp Sequential hoặc timm
+EMA là helper độc lập, chưa tích hợp vào run() và không được dùng trong
+thí nghiệm; đây là hạn chế của phần hoàn thiện starter, không tuyên bố đã
+khảo sát EMA. Code train/inference giữ nguyên bản GitHub commit bfd8765.
+Những bổ sung tiếp theo chỉ tạo bảng Summary/biểu đồ từ kết quả có sẵn,
+không train lại, không chạy lại model trên test và không thay đổi dự đoán.
+BN fusion chỉ áp dụng cho các cặp Sequential hoặc timm
 ResNet xác định; ConvNeXt dùng LayerNorm nên không áp dụng kỹ thuật này.
 Chạy code/test_helpers.py để kiểm tra đầu ra fusion, CutMix, loss, EMA,
 normalization xác suất, CLI và nhóm optimizer bằng dữ liệu tổng hợp.

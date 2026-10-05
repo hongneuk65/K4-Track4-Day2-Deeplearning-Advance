@@ -4,10 +4,12 @@ MSSV: 2A202602800
 
 Notebook Colab: https://colab.research.google.com/drive/1hHWr3tceI_zQFmJ2MLObZo4HFrgQvVIu
 
-Link trên là notebook của lần thực nghiệm đã chạy. Notebook trong `code/`
-là bản hoàn thiện sau thí nghiệm, đã đồng bộ với các module Python; chưa
-được chạy lại toàn bộ trên Colab. Các kết quả nộp là từ lần thực nghiệm cũ,
-không phải kết quả mới của các tính năng bổ sung như EMA.
+Link trên là notebook của lần thực nghiệm đã chạy. Code train/inference trong
+bài nộp giữ nguyên bản đã có trên GitHub tại commit `bfd8765`. Notebook trong
+`code/` chỉ bổ sung phần tạo sản phẩm Bước 5 (Summary và biểu đồ backbone),
+không thay đổi cấu hình hay phép tính train/test. Phần bổ sung này đã được
+chạy riêng trên CPU từ Excel có sẵn; không tuyên bố đã chạy lại toàn bộ
+notebook trên Colab. Giữ link cũ làm bằng chứng thực nghiệm.
 
 ## Thứ tự chạy
 
@@ -48,8 +50,9 @@ Nếu tiếp tục phiên bị ngắt, cần giữ checkpoint trên Drive.
 
 Từ thư mục code: `python test_helpers.py -v`.
 Không cần dataset hoặc GPU. Các helper bổ sung không phải thí nghiệm mới.
-EMA tùy chọn đã tích hợp vào run() qua ema_decay (mặc định None); các thí nghiệm
-đã nộp không dùng EMA. CLI hỗ trợ các field
+EMA là helper độc lập, chưa tích hợp vào run(); các thí nghiệm
+đã nộp không dùng EMA. Đây là hạn chế của phần hoàn thiện starter.
+CLI hỗ trợ các field
 Config đã dùng. run() giữ save_test_predictions=False; test được chạy riêng
 ở Bước 4 của notebook để áp dụng suy luận đã chốt.
 

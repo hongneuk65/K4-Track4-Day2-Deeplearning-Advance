@@ -5,10 +5,6 @@ import sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import unittest
-import tempfile
-from unittest.mock import patch
-import json
-import pandas as pd
 import torch
 import numpy as np
 import timm
@@ -54,8 +50,6 @@ class HelperTests(unittest.TestCase):
     def test_temperature_and_views(self):
         z = np.random.randn(12,9)
         p = inference.apply_temperature(z,.6)
-        np.testing.assert_allclose(p, inference.apply_temperature(z, T=.6))
-        np.testing.assert_allclose(p, inference.apply_temperature(z, temperature=.6))
         np.testing.assert_allclose(p.sum(1),1)
         np.testing.assert_array_equal(p.argmax(1),z.argmax(1))
         x = torch.randn(2,3,32,32)
@@ -77,8 +71,6 @@ class HelperTests(unittest.TestCase):
         self.assertEqual(ema.model[1].num_batches_tracked.item(),7)
 
     def test_cli_and_optimizer_groups(self):
-        self.assertEqual(train.parse_overrides(['ema_decay=.9']), {'ema_decay': .9})
-        self.assertIsNone(train.parse_overrides(['ema_decay=none'])['ema_decay'])
         self.assertEqual(train.parse_overrides(['seed=2','amp=false','mix=none','class_weight_beta=.9']),
                          dict(seed=2,amp=False,mix=None,class_weight_beta=.9))
         for args in [['unknown=1'],['amp=yes'],['seed=none']]:
@@ -99,56 +91,6 @@ class HelperTests(unittest.TestCase):
             self.assertEqual(result['n'],50)
             self.assertLessEqual(result['p50'],result['p95'])
             self.assertLessEqual(result['p95'],result['p99'])
-
-    def test_run_ema_checkpoint_and_resume(self):
-        class Tiny(torch.nn.Module):
-            def __init__(self):
-                super().__init__()
-                self.head = torch.nn.Linear(3, 9)
-                self.pretrained_cfg = {'tag': 'synthetic'}
-            def forward(self, x):
-                return self.head(x)
-            def get_classifier(self):
-                return self.head
-
-        frames = pd.DataFrame({'Filename': [f'{i}.jpg' for i in range(9)],
-                               'Label': list(range(9))})
-        loader = [(torch.randn(9, 3), torch.arange(9), frames.Filename.tolist())]
-        observed = []
-        real_evaluate = train.evaluate
-        def capture(m, *args):
-            observed.append({k: v.clone() for k, v in m.state_dict().items()})
-            return real_evaluate(m, *args)
-
-        with tempfile.TemporaryDirectory() as directory, \
-             patch.object(train.torch.cuda, 'is_available', return_value=False), \
-             patch.object(train.dataset, 'load_split', return_value=(frames, frames, frames)), \
-             patch.object(train.dataset, 'check_split'), \
-             patch.object(train.dataset, 'make_loader', return_value=loader), \
-             patch.object(train.model_utils, 'build_model', side_effect=lambda *a, **k: Tiny()), \
-             patch.object(train.model_utils, 'count_gmacs', return_value=0.0), \
-             patch.object(train, 'evaluate', side_effect=capture):
-            cfg = train.Config(epochs=2, ema_decay=.5, amp=False,
-                               out_dir=directory+'/runs', pred_dir=directory+'/predictions',
-                               curves_dir=directory+'/curves')
-            first = train.run(cfg)
-            best = torch.load(train.run_dir(cfg)/'best.pt', weights_only=False)
-            last = torch.load(train.run_dir(cfg)/'last.pt', weights_only=False)
-            for k, v in best['model'].items():
-                torch.testing.assert_close(v, observed[first['best_epoch']-1][k])
-            self.assertTrue(any(not torch.equal(last['model'][k], last['ema'][k])
-                                for k in last['model']))
-            second = train.run(cfg)
-            self.assertAlmostEqual(first['macro_f1_val'], second['macro_f1_val'])
-            self.assertFalse(list(Path(directory+'/predictions').glob('*test.csv')))
-
-    def test_resume_legacy_config_without_ema(self):
-        # Default None preserves the old submitted experiment config fields.
-        from dataclasses import asdict
-        previous = asdict(train.Config())
-        del previous['ema_decay']
-        previous.setdefault('ema_decay', None)
-        self.assertEqual(previous, asdict(train.Config()))
 
 
 if __name__ == '__main__':

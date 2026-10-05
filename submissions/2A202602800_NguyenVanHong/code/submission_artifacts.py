@@ -18,6 +18,19 @@ def finalize_artifacts(work_dir):
     root = Path(work_dir)
     workbook = openpyxl.load_workbook(root / "results.xlsx")
     backbones = records(workbook["Backbones"])
+    backbone_sheet = workbook["Backbones"]
+    if "notes" not in list(next(backbone_sheet.values)):
+        note_column = backbone_sheet.max_column + 1
+        backbone_sheet.cell(1, note_column, "notes")
+        for row_index in range(2, backbone_sheet.max_row + 1):
+            backbone_sheet.cell(row_index, note_column,
+                "Common recipe, 12 epochs, seed 0; preliminary FP32 batch-1 latency")
+        backbone_sheet.cell(1, note_column).font = Font(bold=True, color="FFFFFF")
+        backbone_sheet.cell(1, note_column).fill = PatternFill("solid", fgColor="305496")
+        backbone_sheet.column_dimensions[get_column_letter(note_column)].width = 42
+        for row_index in range(1, backbone_sheet.max_row + 1):
+            backbone_sheet.cell(row_index, note_column).alignment = Alignment(wrap_text=True)
+        backbone_sheet.auto_filter.ref = backbone_sheet.dimensions
     training = records(workbook["Training"])
     inference = records(workbook["Inference"])
     backbone_lookup = {r["backbone"]: r for r in backbones}
