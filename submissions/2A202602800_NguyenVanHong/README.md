@@ -2,7 +2,7 @@
 
 MSSV: 2A202602800
 
-Notebook Colab: https://colab.research.google.com/drive/1hHWr3tceI_zQFmJ2MLObZo4HFrgQvVIu
+Notebook Colab: [https://colab.research.google.com/drive/1hHWr3tceI_zQFmJ2MLObZo4HFrgQvVIu](https://colab.research.google.com/drive/1igW3PnJivivc81WHG8i0uMoWocrxT-7i?usp=sharing)
 
 Link trên là notebook của lần thực nghiệm đã chạy. Code train/inference trong
 bài nộp giữ nguyên bản đã có trên GitHub tại commit `bfd8765`. Notebook trong
